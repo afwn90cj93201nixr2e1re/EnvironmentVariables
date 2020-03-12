@@ -1,0 +1,39 @@
+name: Build Linux
+on:
+    release:
+        types:
+            - published
+jobs:
+  build-linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Install
+        shell: bash
+        run: sudo apt update && sudo apt install -y gcc g++ gcc-multilib g++-multilib
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=GIT_TAG_VERSION::${GITHUB_REF/refs\/tags\//}
+      - name: Build
+        shell: bash
+        run: |
+          chmod -R 755 *
+          ./Compile.sh ${{ steps.get_version.outputs.GIT_TAG_VERSION }}
+          mkdir $GITHUB_WORKSPACE/Release/addons/amxmodx/modules/
+          mv $GITHUB_WORKSPACE/enviromentvariables_amxx_i386.so $GITHUB_WORKSPACE/Release/addons/amxmodx/modules/enviromentvariables_amxx_i386.so
+          tar -zcvf enviromentvariables.tar.gz Release
+
+      - name: "Get upload url"
+        run: echo "::set-output name=upload_url::https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$(jq --raw-output '.release.id' $GITHUB_EVENT_PATH)/assets{?name,label}"
+        id: release
+
+      - name: "Upload Release Asset"
+        uses: "actions/upload-release-asset@master"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }} 
+          asset_path: ./enviromentvariables.tar.gz
+          asset_name: enviromentvariables.tar.gz
+          asset_content_type: application/tar+gzip
