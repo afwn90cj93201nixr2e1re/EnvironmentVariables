@@ -1,8 +1,8 @@
-#if defined _enviroment_variables
+#if defined _environment_variables
 	#endinput
 #endif
 
-#define _enviroment_variables
+#define _environment_variables
 
 #if !defined EINVAL
 #define EINVAL 22 // Invalid argument
@@ -13,12 +13,12 @@
 #endif
 
 #if AMXX_VERSION_NUM >= 175
-	#pragma reqlib enviromentvariables
+	#pragma reqlib environmentvariables
 	#if !defined AMXMODX_NOAUTOLOAD
-		#pragma loadlib enviromentvariables
+		#pragma loadlib environmentvariables
 	#endif
 #else
-	#pragma library enviromentvariables
+	#pragma library environmentvariables
 #endif
 
 /**

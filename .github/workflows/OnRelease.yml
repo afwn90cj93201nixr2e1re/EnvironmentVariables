@@ -1,39 +1,26 @@
-name: Build Linux
+name: 'Build'
 on:
     release:
         types:
             - published
 jobs:
-  build-linux:
-    name: Linux
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Install
-        shell: bash
-        run: sudo apt update && sudo apt install -y gcc g++ gcc-multilib g++-multilib
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=GIT_TAG_VERSION::${GITHUB_REF/refs\/tags\//}
-      - name: Build
-        shell: bash
-        run: |
-          chmod -R 755 *
-          ./Compile.sh ${{ steps.get_version.outputs.GIT_TAG_VERSION }}
-          mkdir $GITHUB_WORKSPACE/Release/addons/amxmodx/modules/
-          mv $GITHUB_WORKSPACE/enviromentvariables_amxx_i386.so $GITHUB_WORKSPACE/Release/addons/amxmodx/modules/enviromentvariables_amxx_i386.so
-          tar -zcvf enviromentvariables.tar.gz Release
-
-      - name: "Get upload url"
-        run: echo "::set-output name=upload_url::https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$(jq --raw-output '.release.id' $GITHUB_EVENT_PATH)/assets{?name,label}"
-        id: release
-
-      - name: "Upload Release Asset"
-        uses: "actions/upload-release-asset@master"
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-        with:
-          upload_url: ${{ steps.release.outputs.upload_url }} 
-          asset_path: ./enviromentvariables.tar.gz
-          asset_name: enviromentvariables.tar.gz
-          asset_content_type: application/tar+gzip
+    build-linux:
+        name: Linux
+        runs-on: ubuntu-latest
+        steps:
+            - {uses: actions/checkout@master}
+            - {name: 'Multilib installing', shell: bash, run: 'sudo apt update && sudo apt install -y gcc g++ gcc-multilib g++-multilib'}
+            - {name: 'Getting version', id: get_version, run: 'echo ::set-output name=GIT_TAG_VERSION::${GITHUB_REF/refs\/tags\//}'}
+            - {name: Build, shell: bash, run: "chmod -R 755 *\n./Compile.sh ${{ steps.get_version.outputs.GIT_TAG_VERSION }}\nmkdir $GITHUB_WORKSPACE/Release/addons/amxmodx/modules/\nmv $GITHUB_WORKSPACE/environmentvariables_amxx_i386.so $GITHUB_WORKSPACE/Release/addons/amxmodx/modules/environmentvariables_amxx_i386.so\ntar -zcvf environmentvariables.tgz Release\n"}
+            - {name: 'Asset attaching', uses: svenstaro/upload-release-action@v1-release, env: {GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}, with: {repo_token: '${{ secrets.GITHUB_TOKEN }}', file: ./environmentvariables.tgz, asset_name: environmentvariables.tgz, tag: '${{ github.ref }}'}}
+    build-windows:
+        name: Windows
+        runs-on: windows-latest
+        steps:
+            - {uses: actions/checkout@master}
+            - {name: 'Get the version', id: get_version, run: 'echo ::set-output name=GIT_TAG_VERSION::${GITHUB_REF/refs\/tags\//}', shell: bash}
+            - {name: 'Install v141_xp', run: "& \"C:\\Program Files (x86)\\Microsoft Visual Studio\\Installer\\vs_installer.exe\" modify `\n --installPath \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\" `\n --add Microsoft.VisualStudio.Component.WinXP --passive --norestart\n", shell: pwsh}
+            - {name: 'Going to dir', run: "cd msvc\n"}
+            - {name: 'Build', run: "set _CL_=/MT\n\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe\" %GITHUB_WORKSPACE%\\msvc\\EnvironmentVariables.vcxproj /p:WarningLevel=0 /p:Configuration=Release /p:Platform=x86 /t:Rebuild /p:Version=\"${{ steps.get_version.outputs.GIT_TAG_VERSION }}\"\n%systemroot%\\System32\\xcopy /i /y %GITHUB_WORKSPACE%\\msvc\\Release\\environmentvariables_amxx.dll %GITHUB_WORKSPACE%\\Release\\addons\\amxmodx\\modules\\environmentvariables_amxx.dll*\npowershell Compress-Archive %GITHUB_WORKSPACE%\\Release\\ %GITHUB_WORKSPACE%\\msvc\\environmentvariables_static.zip\nset _CL_=/MD\n\"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\MSBuild\\Current\\Bin\\MSBuild.exe\" %GITHUB_WORKSPACE%\\msvc\\EnvironmentVariables.vcxproj /p:WarningLevel=0 /p:Configuration=Release /p:Platform=x86 /t:Rebuild  /p:Version=\"${{ steps.get_version.outputs.GIT_TAG_VERSION }}\"\n%systemroot%\\System32\\xcopy /i /y %GITHUB_WORKSPACE%\\msvc\\Release\\environmentvariables_amxx.dll %GITHUB_WORKSPACE%\\Release\\addons\\amxmodx\\modules\\environmentvariables_amxx.dll*\npowershell Compress-Archive %GITHUB_WORKSPACE%\\Release\\ %GITHUB_WORKSPACE%\\msvc\\environmentvariables_dynamic.zip\n", shell: cmd}
+            - {name: 'Dynamic windows asset attaching', uses: svenstaro/upload-release-action@v1-release, env: {GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}, with: {repo_token: '${{ secrets.GITHUB_TOKEN }}', file: '${{ github.workspace }}\msvc\environmentvariables_dynamic.zip', asset_name: environmentvariables_dynamic.zip, tag: '${{ github.ref }}'}}
+            - {name: 'Static windows asset attaching', uses: svenstaro/upload-release-action@v1-release, env: {GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}, with: {repo_token: '${{ secrets.GITHUB_TOKEN }}', file: '${{ github.workspace }}\msvc\environmentvariables_static.zip', asset_name: environmentvariables_static.zip, tag: '${{ github.ref }}'}}

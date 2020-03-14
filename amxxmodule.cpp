@@ -2311,9 +2311,12 @@ C_DLLEXPORT int Meta_Detach(PLUG_LOADTIME now, PL_UNLOAD_REASON reason)
 #endif	// FN_META_DETACH
 	return TRUE;
 }
-
-C_DLLEXPORT void WINAPI GiveFnptrsToDll(enginefuncs_t* pengfuncsFromEngine, globalvars_t *pGlobals)
-{
+#if !defined(_WIN32)
+C_DLLEXPORT
+#endif
+void WINAPI GiveFnptrsToDll(enginefuncs_t * pengfuncsFromEngine, globalvars_t * pGlobals) {
+#pragma message("Exporting function " __FUNCTION__ " [" __FUNCDNAME__ "]")
+#pragma comment(linker, "/EXPORT:" __FUNCTION__ "=" __FUNCDNAME__)
 	memcpy(&g_engfuncs, pengfuncsFromEngine, sizeof(enginefuncs_t));
 	gpGlobals = pGlobals;
 }

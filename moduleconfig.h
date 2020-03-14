@@ -17,12 +17,12 @@
 #include <amxmodx_version.h>
 
 // Module info
-#define MODULE_NAME "EnviromentVariables"
+#define MODULE_NAME "Environment Variables"
 #define MODULE_VERSION MODULE_VERSION_A
 #define MODULE_AUTHOR "Unknown"
 #define MODULE_URL "shel/Garey/F@ntom/wopox1337"
-#define MODULE_LOGTAG "Enviroment Variables"
-#define MODULE_LIBRARY "enviromentvariables"
+#define MODULE_LOGTAG "Environment Variables"
+#define MODULE_LIBRARY "environmentvariables"
 #define MODULE_LIBCLASS ""
 // If you want the module not to be reloaded on mapchange, remove / comment out the next line
 //#define MODULE_RELOAD_ON_MAPCHANGE
@@ -34,7 +34,7 @@
 #endif // __DATE__
 
 // metamod plugin?
-#define USE_METAMOD
+/* #define USE_METAMOD */
 
 // use memory manager/tester?
 // note that if you use this, you cannot construct/allocate 
@@ -44,7 +44,7 @@
 
 // Unless you use STL or exceptions, keep this commented.
 // It allows you to compile without libstdc++.so as a dependency
-// #define NO_ALLOC_OVERRIDES
+#define NO_ALLOC_OVERRIDES
 
 // Uncomment this if you are using MSVC8 or greater and want to fix some of the compatibility issues yourself 
 // #define NO_MSVC8_AUTO_COMPAT
